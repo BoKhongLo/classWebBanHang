@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "bitset": "cpp",
+    "system_error": "cpp",
+    "thread": "cpp",
+    "typeindex": "cpp",
+    "vector": "cpp",
+    "string": "cpp"
+  }
+}
