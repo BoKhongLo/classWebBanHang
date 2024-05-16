@@ -24,7 +24,19 @@ vector<string> split(const string &s, char delimiter)
     }
     return tokens;
 }
-
+// Hàm chia một chuỗi thành các đoạn nhỏ có độ dài tối đa là maxLength
+std::vector<std::string> splitStringIntoLines(const std::string &str, int maxLength)
+{
+    std::vector<std::string> lines;
+    std::string::size_type start = 0;
+    while (start < str.size())
+    {
+        std::string::size_type end = std::min(start + maxLength, str.size());
+        lines.push_back(str.substr(start, end - start));
+        start = end;
+    }
+    return lines;
+}
 string getValueFromFile(const string &filename, const string &id, int position, bool printBeforeFirstHash)
 {
     ifstream file(filename);
@@ -259,9 +271,11 @@ void printFormattedTable(const std::string &filename, const std::vector<std::str
 
     // Xử lý từng dòng trong file
     std::string line;
+    std::vector<std::vector<std::string>> fileData;
     while (std::getline(file, line))
     {
         std::vector<std::string> tokens = split(line, '#');
+        fileData.push_back(tokens);
         for (const auto &token : tokens)
         {
             if (token.size() > maxStringLength)
@@ -283,7 +297,7 @@ void printFormattedTable(const std::string &filename, const std::vector<std::str
     file.close();
 
     // Độ dài cho các dòng định dạng trong bảng
-    int lineLength = maxStringLength + 3;
+    int lineLength = maxStringLength + 2;
 
     // In bảng định dạng
     std::cout << "+" << std::string(lineLength * columnNames.size() + columnNames.size() - 1, '-') << "+" << std::endl;
@@ -299,18 +313,38 @@ void printFormattedTable(const std::string &filename, const std::vector<std::str
     std::cout << "+" << std::string(lineLength * columnNames.size() + columnNames.size() - 1, '-') << "+" << std::endl;
 
     // In dữ liệu từ file
-    file.open(filename); // Mở lại file để đọc từ đầu
-    while (std::getline(file, line))
+    for (const auto &row : fileData)
     {
-        std::vector<std::string> tokens = split(line, '#');
-        std::cout << "|";
-        for (const auto &token : tokens)
+        // Tìm số dòng cần thiết để in hết các giá trị trong hàng này
+        size_t maxLines = 1;
+        std::vector<std::vector<std::string>> splitTokens;
+        for (const auto &token : row)
         {
-            std::cout << " " << std::setw(maxStringLength) << std::left << token << " |";
+            splitTokens.push_back(splitStringIntoLines(token, maxStringLength));
+            if (splitTokens.back().size() > maxLines)
+            {
+                maxLines = splitTokens.back().size();
+            }
         }
-        std::cout << std::endl;
+
+        // In từng dòng một
+        for (size_t lineIndex = 0; lineIndex < maxLines; ++lineIndex)
+        {
+            std::cout << "|";
+            for (const auto &tokens : splitTokens)
+            {
+                if (lineIndex < tokens.size())
+                {
+                    std::cout << " " << std::setw(maxStringLength) << std::left << tokens[lineIndex] << " |";
+                }
+                else
+                {
+                    std::cout << " " << std::setw(maxStringLength) << std::left << "" << " |";
+                }
+            }
+            std::cout << std::endl;
+        }
     }
-    file.close();
 
     std::cout << "+" << std::string(lineLength * columnNames.size() + columnNames.size() - 1, '-') << "+" << std::endl;
 }
@@ -356,4 +390,164 @@ string toString(const string arr[], int size)
 
 //     // Gọi hàm để in ra bảng với dữ liệu từ file và tên các cột
 //     printFormattedTable(filename, columnNames);
+
+void deleteLine(string filename, string id)
+{
+    std::ifstream inFile(filename);
+    std::vector<std::string> lines; // Dùng vector để lưu trữ các dòng từ tệp
+
+    if (!inFile)
+    {
+        std::cerr << "Không thể mở tệp để đọc.\n";
+        return;
+    }
+
+    std::string line;
+    while (std::getline(inFile, line))
+    {
+        // Tìm dòng chứa productName cần xóa
+        if (line.find(id) != std::string::npos)
+        {
+            continue; // Bỏ qua dòng chứa productName cần xóa
+        }
+        lines.push_back(line); // Lưu trữ các dòng không bị xóa vào vector
+    }
+
+    inFile.close();
+
+    std::ofstream outFile(filename);
+    if (!outFile)
+    {
+        std::cerr << "Không thể mở tệp để ghi.\n";
+        return;
+    }
+
+    for (const std::string &l : lines)
+    {
+        outFile << l << std::endl; // Ghi lại các dòng không bị xóa vào tệp mới
+    }
+
+    outFile.close();
+}
+void printSelectedColumns(const std::string &filename, const std::vector<std::string> &columnNames, const std::vector<int> &columnIndices)
+{
+
+
+    std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        std::cerr << "Không thể mở file: " << filename << std::endl;
+        return;
+    }
+
+    // Xử lý từng dòng trong file
+    std::string line;
+    std::vector<std::vector<std::string>> fileData;
+    while (std::getline(file, line))
+    {
+        std::vector<std::string> tokens = split(line, '#');
+        fileData.push_back(tokens);
+    }
+
+    file.close();
+
+    // Tìm độ dài lớn nhất của các chuỗi trong các cột được chọn
+    int maxStringLength = 0;
+    for (const auto &row : fileData)
+    {
+        for (const auto &index : columnIndices)
+        {
+            if (index < row.size())
+            {
+                const std::string &token = row[index];
+                if (token.size() > maxStringLength)
+                {
+                    maxStringLength = token.size();
+                }
+            }
+        }
+    }
+
+    // Xử lý tên cột
+    for (const auto &columnName : columnNames)
+    {
+        if (columnName.size() > maxStringLength)
+        {
+            maxStringLength = columnName.size();
+        }
+    }
+
+    // Độ dài cho các dòng định dạng trong bảng
+    int lineLength = maxStringLength + 2;
+
+    // In bảng định dạng
+    std::cout << "+" << std::string(lineLength * columnNames.size() + columnNames.size() - 1, '-') << "+" << std::endl;
+
+    // In tiêu đề cột
+    std::cout << "|";
+    for (const auto &columnName : columnNames)
+    {
+        std::cout << " " << std::setw(maxStringLength) << std::left << columnName << " |";
+    }
+    std::cout << std::endl;
+
+    std::cout << "+" << std::string(lineLength * columnNames.size() + columnNames.size() - 1, '-') << "+" << std::endl;
+
+    // In dữ liệu từ file
+    for (const auto &row : fileData)
+    {
+        // Tìm số dòng cần thiết để in hết các giá trị trong hàng này
+        size_t maxLines = 1;
+        std::vector<std::vector<std::string>> splitTokens;
+        // Thêm giá trị trước dấu #
+        if (!row.empty())
+        {
+            splitTokens.push_back(splitStringIntoLines(row[0], maxStringLength));
+            if (splitTokens.back().size() > maxLines)
+            {
+                maxLines = splitTokens.back().size();
+            }
+        }
+        else
+        {
+            splitTokens.push_back({""});
+        }
+
+        for (const auto &index : columnIndices)
+        {
+            if (index < row.size())
+            {
+                splitTokens.push_back(splitStringIntoLines(row[index], maxStringLength));
+            }
+            else
+            {
+                splitTokens.push_back({""});
+            }
+            if (splitTokens.back().size() > maxLines)
+            {
+                maxLines = splitTokens.back().size();
+            }
+        }
+
+        // In từng dòng một
+        for (size_t lineIndex = 0; lineIndex < maxLines; ++lineIndex)
+        {
+            std::cout << "|";
+            for (const auto &tokens : splitTokens)
+            {
+                if (lineIndex < tokens.size())
+                {
+                    std::cout << " " << std::setw(maxStringLength) << std::left << tokens[lineIndex] << " |";
+                }
+                else
+                {
+                    std::cout << " " << std::setw(maxStringLength) << std::left << "" << " |";
+                }
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    std::cout << "+" << std::string(lineLength * columnNames.size() + columnNames.size() - 1, '-') << "+" << std::endl;
+}
 #endif

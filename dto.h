@@ -52,4 +52,19 @@ struct deleteproductDto{
   string userId;
   string productID;
 };
+
+struct sum_product_price {
+  string product;
+  int price;
+};
+
+struct product_quantity_sumPrice {
+  string productId;
+  int quantity;
+  int price;
+  string size;
+  string color;
+  string address;
+};
+
 #endif

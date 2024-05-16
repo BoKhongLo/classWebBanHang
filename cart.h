@@ -20,7 +20,7 @@ public:
     {
         this->idCart = "Card_"+ generateRandomString(this->userId + "cart");
         this->userId = userID;
-        this->totalPrice = calculateItemCount() || 0;
+        this->totalPrice = calculatePrice() || 0;
         this->totalItemCount = calculateItemCount() || 0;
     }
     Cart() : idCart(""), userId(""), items(), totalPrice(0.0), totalItemCount(0.0) {}
@@ -90,6 +90,7 @@ public:
     {
         return this->items.size();
     }
+
     void showItems()
     {
         for (Product item : this->items)
@@ -120,7 +121,6 @@ public:
                         // Giảm số lượng của item nếu quantity < số lượng hiện có
                         item.setQuantity(item.getQuantity() - quantity);
                     }
-
                     // Cập nhật lại tổng số tiền và tổng số lượng
                     totalPrice -= item.getPrice() * quantity;
                     totalItemCount -= quantity;
@@ -130,8 +130,8 @@ public:
                     // Tăng số lượng của item
                     item.setQuantity(item.getQuantity() + quantity);
                     // Cập nhật lại tổng số tiền và tổng số lượng
-                    totalPrice += item.getPrice() * quantity;
-                    totalItemCount += quantity;
+                    this->totalPrice += item.getPrice() * quantity;
+                    this->totalItemCount += quantity;
                 }
                 break; // Kết thúc vòng lặp sau khi xử lý item
             }
@@ -147,13 +147,13 @@ public:
             totalItemCount += quantity;
         }
     }
-    void save()
+    void save(string Id)
     {
         string item_in_cart;
         for(Product item : this->items){
             item_in_cart += item.getProductId() += ',';
         }
-        WriteFile("data/cart.txt", this->idCart, this->userId, item_in_cart, this->totalPrice, this->totalItemCount);
+        WriteFile("data/cart.txt", this->idCart, Id, item_in_cart, this->totalPrice, this->totalItemCount);
     }
     friend ostream &operator<<(ostream &os, const Cart &cart)
     {

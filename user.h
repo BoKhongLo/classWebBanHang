@@ -61,11 +61,12 @@ public:
            refresh_token(""), email(""), address(""), gender(""), hash(""),
            memberLevel(""), isAuthenticated(false), updateAt(0), createdAt(0)
   {
+    userId = "User_" + generateRandomString(username);
     myCart.setIdCart("Card_" + generateRandomString(this->userId + "cart"));
     myCart.setUserIdCart(this->userId);
     myCart.setTotalItemCount(0);
     myCart.setTotalPrice(0);
-    myCart.save();
+    myCart.save(this->userId);
   }
   void setUsername(const string &value) { this->username = value; }
   void setRefreshToken(const string &value) { this->refresh_token = value; }
@@ -85,7 +86,8 @@ public:
   // ================================ SET RÔN =================================================================
   void setPhoneNumber(const string &value)
   {
-    append(this->phonenumber, 5, value);
+    // append(this->phonenumber, 5, value);
+    this->phonenumber[0] = value;
   }
   void setDeliveryInfo(DeliveryInfo delivery)
   {
@@ -115,8 +117,8 @@ public:
     cout << "User ID: " << getValueFromFile("data/cart.txt", getIdCart(), 1, 1) << endl;
     cout << "items: " << endl;
     myCart.showItems();
+    cout << "=========================" << endl;
   }
-
   void generateIdAuto(string name)
   {
     this->userId = "User_" + generateRandomString(name);
@@ -326,11 +328,13 @@ public:
     vector<string> columnNames = {"idProduct", "ten san pham", "gia (VND)", "so luong con lai", "Kieu", "size", "color", "brand"};
     printFormattedTable(filename, columnNames);
   }
+
   void updateCart(string choice, string idProduct, int quantity)
   {
     myCart.updateCart(choice, idProduct, quantity);
-    myCart.save();
+    myCart.save(this->userId);
   }
+
   static void editProduct(editproductDto dto)
   {
     Product newProduct;
@@ -357,40 +361,25 @@ public:
     newProduct.setProductType(dto.style);
     newProduct.save();
   }
-  static void deleteProduct(const deleteproductDto& dto) {
-    std::ifstream inFile("data/product.txt");
-    std::vector<std::string> lines; // Dùng vector để lưu trữ các dòng từ tệp
+  static void deleteProduct(const deleteproductDto &dto)
+  {
+    deleteLine("data/product.txt", dto.productID);
+  }
 
-    if (!inFile) {
-        std::cerr << "Không thể mở tệp product.txt để đọc.\n";
-        return;
-    }
-
-    std::string line;
-    while (std::getline(inFile, line)) {
-        // Tìm dòng chứa productName cần xóa
-        if (line.find(dto.productID) != std::string::npos) {
-            continue; // Bỏ qua dòng chứa productName cần xóa
-        }
-        lines.push_back(line); // Lưu trữ các dòng không bị xóa vào vector
-    }
-
-    inFile.close();
-
-    std::ofstream outFile("data/product.txt");
-    if (!outFile) {
-        std::cerr << "Không thể mở tệp product.txt để ghi.\n";
-        return;
-    }
-
-    for (const std::string& l : lines) {
-        outFile << l << std::endl; // Ghi lại các dòng không bị xóa vào tệp mới
-    }
-
-    outFile.close();
-}
-  void createOrder() {}
-  void deleteOrder() {}
+  void createOrder(product_quantity_sumPrice kv, string id)
+  {
+    WriteFile("data/order.txt", id, "Order_" + generateRandomString(this->userId + "order,"), "Dang giao", this->address, this->phonenumber[0], kv.size, kv.color, kv.productId, kv.price);
+  }
+  void deleteOrder(string orderId)
+  {
+    deleteLine("data/order.txt", orderId);
+  }
+  void showOrder()
+  {
+    cout << "========================================================================= ORDER =========================================================================" << endl;
+    vector<string> columnNames = {"nguoi dung", "ma order", "status", "dia chi", "SDT", "Size", "Color", "ma SP", "gia (VND)"};
+    printFormattedTable("data/order.txt", columnNames);
+  }
 };
 
 #endif

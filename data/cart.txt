@@ -1,2 +1,1 @@
-ID_CART # USER_ID # items # Price # Count
-Card_zxoezwspsp###0#0
+Card_cltkgsdgir#User_opsvpwowlq#product1,product2,#0#20

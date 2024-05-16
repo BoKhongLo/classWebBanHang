@@ -1,3 +1,4 @@
 product1#productNam124e#100#10#Ao dai#S M L XL XXL#Xanh Do Tim Vang#Local Brand
 product2#productNam41412e#112#10#Ao dai#S M L XL XXL#Xanh Do Tim Vang#Local Brand
 product3#productName123123#133#10#Ao dai#S M L XL XXL#Xanh Do Tim Vang#Local Brand
+Product_bfuilzslzi#Quan Bo Adidos#100000#1000#Ong suong#S M L XL XXL#Xanh Do Tim Den#Quan xin

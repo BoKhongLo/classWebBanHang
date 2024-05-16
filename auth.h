@@ -51,7 +51,6 @@ public:
             user.setEmail(dto.email);
             user.setGender(dto.gender);
             user.genHash(dto.password);
-            user.generateIdAuto(dto.name + dto.password);
             otp_token otp_token_out = Auth::sendOTP(user.getUserId());
             user.genRoomIdAuto(user.getUserId());
             cout << "YOUR'S OTP CODE: " << otp_token_out.otp << endl;
